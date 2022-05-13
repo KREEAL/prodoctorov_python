@@ -1,3 +1,5 @@
+import os
+
 import requests
 import json
 from datetime import datetime
@@ -33,22 +35,39 @@ def get_tasks_by_id(person_id):
     return goodl, badl
 
 
+def create_file(name):
+    if not (os.path.exists("./tasks")):
+        os.mkdir("./tasks")
+    f = open(f"./tasks/{name}.txt", mode='w')
+    return f
+
+
 def form_report():
+    formed_report = """"""
     for person in data:
         tasks_titles = get_tasks_by_id(int(person['id']))
-        print("Отчёт для " + person['company']['name'])
-        print(person['name'] + f" <{person['email']}>"+datetime.now().strftime(" %d.%m.%Y %H:%M"))
-        print(f"Всего задач: {(len(tasks_titles[0])+len(tasks_titles[1]))}")
-        print()
-        print(f"Завершенные задачи ({len(tasks_titles[0])}):")
-        for item in tasks_titles[0]:
-            print(item)
-        print()
-        print(f"Оставшиеся задачи ({len(tasks_titles[1])}):")
-        for item in tasks_titles[1]:
-            print(item)
-        print()
+        list_completed = """"""
+        list_uncompleted = """"""
 
+        for item in tasks_titles[0]:
+            list_completed += "\n" + item
+
+        for item in tasks_titles[1]:
+            list_uncompleted += "\n" + item
+
+        if len(tasks_titles[0]) == 0:
+            list_completed += "\nЗавершенные задачи отсутствуют"
+
+        if len(tasks_titles[1]) == 0:
+            list_uncompleted += "\nНеавершенные задачи отсутствуют"
+
+        formed_report += "Отчёт для " + person['company']['name'] + "\n" + person[
+            'name'] + f" <{person['email']}>" + datetime.now().strftime(
+            " %d.%m.%Y %H:%M") + "\n" + f"Всего задач: {(len(tasks_titles[0]) + len(tasks_titles[1]))}" + "\n\n" + f"Завершенные задачи ({len(tasks_titles[0])}):" + list_completed + "\n\n" + f"Оставшиеся задачи ({len(tasks_titles[1])}):" + list_uncompleted
+
+        file = create_file(person['name'])
+        file.write(formed_report)
+        formed_report = """"""
 
 def main():
     form_report()
