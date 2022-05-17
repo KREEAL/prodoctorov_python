@@ -3,7 +3,6 @@ import os
 import requests
 import json
 from datetime import datetime
-
 from requests import RequestException
 
 data = []
@@ -66,23 +65,38 @@ def get_tasks_by_id(person_id):
     return goodl, badl
 
 
+# just switches the time in current report if needed
+def switch_datetime(person_username):
+    with open(f"./tasks/{person_username}.txt", 'r') as file:
+        old_data = file.read()
+    lines = file.readlines()
+    dt = lines[1][-17:-1]
+    new_data = old_data.replace(dt, datetime.now().strftime("%d.%m.%Y %H:%M"))
+    file.close()
+    with open(f"./tasks/{person_username}.txt", 'w') as f:
+        f.write(new_data)
+    f.close()
+
+
 # renaming the old reports
 def rename_old_report(person_username):
     files = os.listdir("./tasks")
     if f"{person_username}.txt" in files:
         creation_time = get_creation_time(f"./tasks/{person_username}.txt")
-        try:
-            os.rename(f"./tasks/{person_username}.txt", f"./tasks/old_{person_username}_{creation_time}.txt")
-        except FileExistsError:
-            print("CAN'T CREATE FILE WITH SAME NAMES")
+        if f"./tasks/old_{person_username}_{creation_time}.txt" not in files:
+            try:
+                os.rename(f"./tasks/{person_username}.txt", f"./tasks/old_{person_username}_{creation_time}.txt")
+            except FileExistsError:
+                print("CAN'T RENAME FILE")
+        else:
+            switch_datetime(person_username)
 
 
 # creates the new file and directory if needed
 def create_report(person_username):
     if not (os.path.exists("./tasks")):
         os.mkdir("./tasks")
-    rename_old_report(person_username)
-    f = open(f"./tasks/{person_username}.txt", mode='a+')
+    f = open(f"./tasks/{person_username}.txt", mode='w')
     return f
 
 
@@ -118,6 +132,7 @@ def form_report_text(person):
 def form_reports():
     for person in data:
         report_text = form_report_text(person)
+        rename_old_report(person['username'])
         file = create_report(person['username'])
         file.write(report_text)
         file.close()
